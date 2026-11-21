@@ -8,9 +8,8 @@
 <body>
 <div th:replace="~{fragments/nav :: nav(${farmer},'yield')}"></div>
 <main class="page-wrap">
-  <section class="page-intro page-intro-with-art">
-    <div><p class="eyebrow">A FARM-SIZE ESTIMATE</p><h1>Think ahead to harvest.</h1><p>Estimate possible yield using crops recorded for your farm location and season.</p></div>
-    <img class="page-intro-art" src="/assets/yield-feature.png" alt="Yield estimate illustration">
+  <section class="page-intro">
+    <p class="eyebrow">A FARM-SIZE ESTIMATE</p><h1>Think ahead to harvest.</h1><p>Estimate possible yield using crops recorded for your farm location and season.</p>
   </section>
   <div class="notice error" th:if="${serviceError}" th:text="${serviceError}"></div>
   <div class="yield-layout">

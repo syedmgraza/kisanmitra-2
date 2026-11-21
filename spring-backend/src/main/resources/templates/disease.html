@@ -20,11 +20,12 @@
       </select>
       <label class="upload-drop" id="drop-zone" for="image">
         <img id="upload-illustration" src="/assets/planthealth-feature.png" alt="Leaf health illustration">
-        <span class="upload-icon"><i data-lucide="image-plus"></i></span><b>Drop a leaf photo here</b>
+        <b>Drop a leaf photo here</b>
         <span>or choose an image from your device</span><small>JPG, PNG or WEBP · up to 7 MB</small>
         <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp" required>
       </label>
-      <div class="preview-wrap" id="preview-wrap" hidden><img id="image-preview" alt="Selected leaf preview"><button type="button" id="remove-image" class="button button-quiet button-small">Remove photo</button></div>
+      <div class="preview-wrap" id="preview-wrap" hidden><img id="image-preview" alt="Preview of the selected leaf photo"><div class="preview-copy"><b id="preview-name">Selected photo</b><small id="preview-size"></small></div><button type="button" id="remove-image" class="button button-quiet button-small">Remove photo</button></div>
+      <p class="notice error upload-error" id="upload-error" role="alert" hidden></p>
       <button class="button button-primary button-wide" th:disabled="${apiNotConfigured}">Review plant health <i data-lucide="arrow-right"></i></button>
       <p class="fine-print">Guidance only, not a medical diagnosis.</p>
     </form>
