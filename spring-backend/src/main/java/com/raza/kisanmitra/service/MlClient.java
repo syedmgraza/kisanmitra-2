@@ -14,6 +14,7 @@ import java.util.Map;
  public Map<?,?> recommend(Map<String,Object> request){return client.post().uri("/recommend").header("x-ml-service-key",serviceApiKey).contentType(MediaType.APPLICATION_JSON).bodyValue(request).retrieve().bodyToMono(Map.class).block();}
  public Map<?,?> predictYield(Map<String,Object> request){return client.post().uri("/predict-yield").header("x-ml-service-key",serviceApiKey).contentType(MediaType.APPLICATION_JSON).bodyValue(request).retrieve().bodyToMono(Map.class).block();}
  public Map<?,?> weather(String state,String season){return client.get().uri(uri->uri.path("/weather").queryParam("state",state).queryParam("season",season).build()).header("x-ml-service-key",serviceApiKey).retrieve().bodyToMono(Map.class).block();}
+ public java.util.List<String> yieldCrops(String state,String district,String season){return client.get().uri(uri->uri.path("/yield-crops").queryParam("state",state).queryParam("district",district).queryParam("season",season).build()).header("x-ml-service-key",serviceApiKey).retrieve().bodyToMono(new org.springframework.core.ParameterizedTypeReference<java.util.List<String>>(){}).block();}
  public String health(){return client.get().uri("/health").retrieve().bodyToMono(String.class).block();}
  public Map<?,?> disease(MultipartFile file,String crop,String url,String apiKey){
    return WebClient.builder().build().post().uri(url).headers(h->h.setBearerAuth(apiKey)).contentType(MediaType.MULTIPART_FORM_DATA)

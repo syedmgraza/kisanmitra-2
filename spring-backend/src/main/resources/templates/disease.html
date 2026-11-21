@@ -2,13 +2,13 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Plant health · KisanMitra</title><link rel="stylesheet" href="/css/app.css">
+  <title>Plant health · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <div th:replace="~{fragments/nav :: nav(${farmer},'disease')}"></div>
 <main class="page-wrap">
-  <section class="page-intro"><p class="eyebrow">A CLOSER LOOK AT YOUR CROP</p><h1>Check a leaf image.</h1><p>Upload a clear photo and the connected plant health service will return a result to review.</p></section>
+  <section class="page-intro page-intro-with-art"><div><p class="eyebrow">A CLOSER LOOK AT YOUR CROP</p><h1>Check a leaf image.</h1><p>Upload a clear photo and the connected plant health service will return a result to review.</p></div><img class="page-intro-art" src="/assets/planthealth-feature.png" alt="Plant health illustration"></section>
   <div class="notice warning" th:if="${apiNotConfigured}"><i data-lucide="key-round"></i><span>Plant health API is not configured. Add <code>PLANT_HEALTH_API_KEY</code> in your hosting environment to enable image checks.</span></div>
   <div class="notice error" th:if="${error}" th:text="${error}"></div>
   <div class="disease-layout">
@@ -19,7 +19,7 @@
         <option th:each="cropOption : ${crops}" th:value="${cropOption}" th:text="${#strings.capitalize(cropOption)}" th:selected="${cropOption == selectedCrop}">Tomato</option>
       </select>
       <label class="upload-drop" id="drop-zone" for="image">
-        <img id="upload-illustration" src="/assets/disease-upload.png" alt="Leaf health illustration">
+        <img id="upload-illustration" src="/assets/planthealth-feature.png" alt="Leaf health illustration">
         <span class="upload-icon"><i data-lucide="image-plus"></i></span><b>Drop a leaf photo here</b>
         <span>or choose an image from your device</span><small>JPG, PNG or WEBP · up to 7 MB</small>
         <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp" required>

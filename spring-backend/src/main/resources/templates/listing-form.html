@@ -1,1 +1,38 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>List a harvest · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><script src="https://unpkg.com/lucide@latest"></script></head><body><div th:replace="~{fragments/nav :: nav(${farmer},'marketplace')}"></div><main class="page-wrap narrow-wrap"><a class="back-link" href="/marketplace"><i data-lucide="arrow-left"></i> Back to marketplace</a><section class="page-intro"><p class="eyebrow">SHARE WHAT YOU'VE GROWN</p><h1>List a harvest.</h1><p>Buyers will contact you directly. Make sure your contact details are current.</p></section><form method="post" action="/marketplace/new" th:object="${listing}" class="panel form-grid"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><label>Crop name<input th:field="*{cropName}" required maxlength="80" placeholder="e.g. Wheat"><small class="field-error" th:errors="*{cropName}"></small></label><label>Your name<input th:field="*{sellerName}" required maxlength="80"></label><label>Phone or WhatsApp<input th:field="*{sellerContact}" required maxlength="100" placeholder="+91 ..."></label><label>Available quantity (kg)<input type="number" th:field="*{quantityKg}" min="1" step="1" required></label><label>Price per kg (₹)<input type="number" th:field="*{pricePerKg}" min="0.01" step="0.01" required></label><label>State<input th:field="*{locationState}" required maxlength="80"></label><label>District<input th:field="*{locationDistrict}" required maxlength="80"></label><label class="span-2">Photo URL (optional)<input th:field="*{imagePath}" type="url" placeholder="https://..."></label><label class="span-2">Harvest details<textarea th:field="*{description}" rows="4" maxlength="1200" placeholder="Variety, harvest date, pickup details..."></textarea></label><aside class="notice market-note span-2"><i data-lucide="handshake"></i><span>KisanMitra does not handle payments. Buyers will contact you directly.</span></aside><button class="button button-primary span-2">Publish listing <i data-lucide="arrow-right"></i></button></form></main><script>lucide.createIcons()</script></body></html>
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>List a harvest · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme.js" defer></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body><div th:replace="~{fragments/nav :: nav(${farmer},'marketplace')}"></div>
+<main class="page-wrap">
+  <a class="back-link" href="/marketplace"><i data-lucide="arrow-left"></i> Back to marketplace</a>
+  <section class="page-intro"><p class="eyebrow">SHARE WHAT YOU'VE GROWN</p><h1>List a harvest.</h1><p>Add clear details so nearby buyers can quickly understand what you have available.</p></section>
+  <div class="listing-form-layout">
+    <form method="post" action="/marketplace/new" th:object="${listing}" class="panel listing-form-card">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <section class="listing-form-section"><p class="eyebrow">01 · PRODUCE</p><h2>What are you selling?</h2>
+        <label>Crop name<input id="listing-crop" th:field="*{cropName}" list="common-crops" required maxlength="80" placeholder="e.g. Wheat, tomato or chickpea"><small class="field-error" th:errors="*{cropName}"></small><small class="field-help">Use the name buyers know locally.</small></label>
+        <datalist id="common-crops"><option value="Rice"><option value="Wheat"><option value="Maize"><option value="Tomato"><option value="Onion"><option value="Potato"><option value="Sugarcane"><option value="Groundnut"><option value="Gram"><option value="Bajra"><option value="Jowar"><option value="Arhar Tur"><option value="Moong Green Gram"><option value="Urad"></datalist>
+      </section>
+      <section class="listing-form-section"><p class="eyebrow">02 · QUANTITY & PRICE</p><h2>Set buyer expectations</h2>
+        <div class="form-grid"><label>Available quantity<input id="listing-quantity" type="number" th:field="*{quantityKg}" min="1" step="1" required placeholder="e.g. 500"><small class="field-error" th:errors="*{quantityKg}"></small></label>
+          <label>Price per kilogram<input id="listing-price" type="number" th:field="*{pricePerKg}" min="0.01" step="0.01" required placeholder="e.g. 28"><small class="field-error" th:errors="*{pricePerKg}"></small></label></div>
+      </section>
+      <section class="listing-form-section"><p class="eyebrow">03 · CONTACT & PICKUP</p><h2>How can buyers reach you?</h2>
+        <div class="form-grid"><label>Your name<input th:field="*{sellerName}" required maxlength="80" autocomplete="name"><small class="field-error" th:errors="*{sellerName}"></small></label>
+          <label>Phone or WhatsApp<input th:field="*{sellerContact}" required maxlength="100" autocomplete="tel" placeholder="+91 ..."><small class="field-error" th:errors="*{sellerContact}"></small></label>
+          <label>State<input th:field="*{locationState}" readonly aria-readonly="true"></label><label>District<input th:field="*{locationDistrict}" readonly aria-readonly="true"></label></div>
+      </section>
+      <section class="listing-form-section"><p class="eyebrow">04 · EXTRA DETAILS</p><h2>Help buyers decide</h2>
+        <label>Photo URL <span class="field-help">Optional · use a direct, publicly accessible image link.</span><input th:field="*{imagePath}" type="url" placeholder="https://example.com/harvest.jpg"><small class="field-error" th:errors="*{imagePath}"></small></label>
+        <label class="listing-details-label">Harvest and pickup notes<textarea th:field="*{description}" rows="4" maxlength="1200" placeholder="Variety, harvest date, quality notes, or pickup arrangements"></textarea><small class="field-help">Do not include payment credentials or sensitive information.</small></label>
+      </section>
+      <aside class="notice market-note"><i data-lucide="handshake"></i><span>Buyers contact you directly. KisanMitra does not process payments.</span></aside>
+      <button class="button button-primary button-wide" type="submit">Publish harvest <i data-lucide="arrow-right"></i></button>
+    </form>
+    <aside class="panel listing-preview"><p class="eyebrow">LISTING PREVIEW</p><div class="listing-preview-image"><img id="listing-preview-image" src="/assets/crop-placeholder.png" alt="Preview of your crop"></div><span class="status-pill">Available</span><h3 id="listing-preview-crop">Your crop</h3><p class="listing-preview-price" id="listing-preview-price">₹— / kg</p><p class="listing-preview-meta"><span id="listing-preview-quantity">Quantity will appear here</span><br><span th:text="${farmer.district + ', ' + farmer.state}">Your district</span></p><p class="fine-print">Your phone number is visible to interested buyers on the listing.</p></aside>
+  </div>
+</main>
+<script src="/js/listing-form.js"></script><script>lucide.createIcons()</script></body></html>

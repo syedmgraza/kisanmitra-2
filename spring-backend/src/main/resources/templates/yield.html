@@ -1,1 +1,45 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Yield estimate · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><script src="https://unpkg.com/lucide@latest"></script></head><body><div th:replace="~{fragments/nav :: nav(${farmer},'yield')}"></div><main class="page-wrap"><section class="page-intro"><p class="eyebrow">A FARM-SIZE ESTIMATE</p><h1>Think ahead to harvest.</h1><p>Use your location and field details to estimate a possible yield range from historical data.</p></section><section class="panel form-panel"><form method="post" action="/yield" class="form-grid"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><label>Season<select name="season"><option th:each="s : ${seasons}" th:value="${s}" th:text="${s}" th:selected="${selectedSeason == s}"></option></select></label><label>Crop<input name="crop" required maxlength="80" placeholder="e.g. Rice" th:value="${crop}"></label><label>Expected annual rainfall (mm)<input type="number" name="rainfall" min="0" max="10000" step="1" required th:value="${rainfall ?: 800}"></label><label>Fertilizer use<select name="fertilizer"><option th:each="f : ${fertilizers}" th:value="${f}" th:text="${f}" th:selected="${fertilizer == f}"></option></select></label><div class="span-2 form-context"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state + ' · ' + farmer.landSizeHectares + ' hectares'}"></span></div><button class="button button-primary span-2">Estimate yield <i data-lucide="arrow-right"></i></button></form></section><div class="notice error" th:if="${serviceError}" th:text="${serviceError}"></div><section th:if="${result != null}" class="yield-result"><div class="yield-result-head"><span class="module-icon"><i data-lucide="wheat"></i></span><div><p class="eyebrow">MODEL ESTIMATE · <span th:text="${result['season']}">Season</span></p><h2 th:text="${result['crop']}">Crop</h2></div></div><div class="yield-stats"><div><strong th:text="${result['yield_quintals_per_hectare']}">0</strong><span>quintals per hectare</span></div><div><strong th:text="${result['total_production_tonnes'] + ' t'}">0 t</strong><span>estimated farm production</span></div><div><strong th:text="${result['rainfall_mm'] + ' mm'}">0 mm</strong><span>rainfall input</span></div></div><p class="fine-print" th:text="${result['guidance']}">Guidance only.</p></section><aside class="guidance-note"><i data-lucide="info"></i><p>Yield changes with seed variety, soil, water, pests, and farm practices. Treat this estimate as a planning aid.</p></aside></main><script>lucide.createIcons()</script></body></html>
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Yield estimate · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav(${farmer},'yield')}"></div>
+<main class="page-wrap">
+  <section class="page-intro page-intro-with-art">
+    <div><p class="eyebrow">A FARM-SIZE ESTIMATE</p><h1>Think ahead to harvest.</h1><p>Estimate possible yield using crops recorded for your farm location and season.</p></div>
+    <img class="page-intro-art" src="/assets/yield-feature.png" alt="Yield estimate illustration">
+  </section>
+  <div class="notice error" th:if="${serviceError}" th:text="${serviceError}"></div>
+  <div class="yield-layout">
+    <section class="panel form-panel yield-form-panel">
+      <div class="form-section-heading"><span class="module-icon gold"><i data-lucide="sliders-horizontal"></i></span><div><p class="eyebrow">ESTIMATE INPUTS</p><h2>Your growing season</h2></div></div>
+      <form method="post" action="/yield" class="form-grid" id="yield-form">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <label>Season<select id="yield-season" name="season" required><option th:each="s : ${seasons}" th:value="${s}" th:text="${s}" th:selected="${selectedSeason == s}"></option></select></label>
+        <label>Crop<select id="yield-crop" name="crop" th:attr="data-selected-crop=${crop}" required disabled><option value="">Choose a season first</option></select><small id="yield-crop-help" class="field-help">Loading crops for your farm location…</small></label>
+        <label>Expected seasonal rainfall (mm)<input type="number" name="rainfall" min="0" max="10000" step="1" required th:value="${rainfall ?: 800}"><small class="field-help">Use a seasonal estimate for your district.</small></label>
+        <label>Fertilizer use<select name="fertilizer" required><option th:each="f : ${fertilizers}" th:value="${f}" th:text="${f}" th:selected="${fertilizer == f}"></option></select></label>
+        <div class="form-context span-2"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state + ' · ' + farmer.landSizeHectares + ' hectares'}"></span></div>
+        <button class="button button-primary span-2" id="yield-submit">Estimate yield <i data-lucide="arrow-right"></i></button>
+      </form>
+    </section>
+    <aside class="yield-side-note">
+      <img src="/assets/yield-feature.png" alt="">
+      <p class="eyebrow">LOCATION-MATCHED DATA</p><h3>Choose from trained crops</h3>
+      <p>The crop list updates for your location and selected season, helping avoid estimates for unsupported combinations.</p>
+      <span class="location-chip"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state}">Your location</span></span>
+    </aside>
+  </div>
+  <section th:if="${result != null}" class="yield-result">
+    <div class="yield-result-head"><span class="module-icon"><i data-lucide="wheat"></i></span><div><p class="eyebrow">MODEL ESTIMATE · <span th:text="${result['season']}">Season</span></p><h2 th:text="${result['crop']}">Crop</h2></div></div>
+    <div class="yield-stats"><div><strong th:text="${result['yield_quintals_per_hectare']}">0</strong><span>quintals per hectare</span></div><div><strong th:text="${result['total_production_tonnes'] + ' t'}">0 t</strong><span>estimated farm production</span></div><div><strong th:text="${result['rainfall_mm'] + ' mm'}">0 mm</strong><span>rainfall input</span></div></div>
+    <p class="fine-print" th:text="${result['guidance']}">Guidance only.</p>
+  </section>
+  <aside class="guidance-note"><i data-lucide="info"></i><p>Yield changes with seed variety, soil, water, pests, and farm practices. Treat this estimate as a planning aid.</p></aside>
+</main>
+<script src="/js/yield.js"></script><script>lucide.createIcons()</script>
+</body>
+</html>

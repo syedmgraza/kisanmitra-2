@@ -21,6 +21,10 @@ public class CropListing {
     @Enumerated(EnumType.STRING) @Column(nullable=false) private Status status=Status.ACTIVE;
     @Column(nullable=false) private Long ownerUserId;
     public Long getId(){return id;} public String getSellerName(){return sellerName;} public void setSellerName(String v){sellerName=v;}
+    public String getCropImageSlug(){
+        if(cropName==null||cropName.isBlank()) return "crop-placeholder";
+        return cropName.trim().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]+","-").replaceAll("^-|-$","");
+    }
     public String getSellerContact(){return sellerContact;} public void setSellerContact(String v){sellerContact=v;} public String getCropName(){return cropName;} public void setCropName(String v){cropName=v;}
     public double getQuantityKg(){return quantityKg;} public void setQuantityKg(double v){quantityKg=v;} public double getPricePerKg(){return pricePerKg;} public void setPricePerKg(double v){pricePerKg=v;}
     public String getLocationState(){return locationState;} public void setLocationState(String v){locationState=v;} public String getLocationDistrict(){return locationDistrict;} public void setLocationDistrict(String v){locationDistrict=v;}

@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Any
 import hmac
 import os
+import re
 
 import joblib
 import numpy as np
@@ -61,10 +62,14 @@ def _norm(value: str) -> str:
     return aliases.get(value, value)
 
 
+def _asset_slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")
+
+
 def _season_rows(frame: pd.DataFrame, state: str, district: str, season: str) -> pd.DataFrame:
     return frame[(frame.State.map(_norm) == _norm(state)) &
-                 (frame.District.str.casefold() == district.casefold()) &
-                 (frame.Season.str.casefold() == season.casefold())]
+                 (frame.District.str.strip().str.casefold() == district.strip().casefold()) &
+                 (frame.Season.str.strip().str.casefold() == season.strip().casefold())]
 
 
 @app.post("/recommend")
@@ -94,7 +99,7 @@ def recommend(data: RecommendationRequest, _: None = Depends(verify_service_key)
             profit = round(prediction * 10 * price - cost)
         except (KeyError, TypeError, ValueError):
             price, cost, effort, profit = None, None, "Varies", None
-        rows.append({"crop": crop, "predicted_yield_t_ha": round(prediction, 2), "performance": performance,
+        rows.append({"crop": crop, "image_slug": _asset_slug(str(crop)), "predicted_yield_t_ha": round(prediction, 2), "performance": performance,
                      "effort": effort, "estimated_profit_rs_ha": profit, "land_size_hectares": data.land_size,
                      "estimated_production_tonnes": round(prediction * data.land_size, 2),
                      "confidence": "Low" if crop in {"Cardamom", "Black Pepper", "Cashewnut", "Niger Seed", "Castor Seed", "Sesamum", "Tobacco", "Safflower", "Dry Chillies"} else "Standard"})
@@ -105,7 +110,7 @@ def recommend(data: RecommendationRequest, _: None = Depends(verify_service_key)
 @app.post("/predict-yield")
 def predict_yield(data: YieldRequest, _: None = Depends(verify_service_key)) -> dict[str, Any]:
     record = _season_rows(yield_data, data.state, data.district, data.season)
-    record = record[record.Crop.str.casefold() == data.crop.casefold()]
+    record = record[record.Crop.str.strip().str.casefold() == data.crop.strip().casefold()]
     if record.empty:
         raise HTTPException(404, "The selected crop does not have training records for this location and season.")
     features = pd.DataFrame([{"State": record.State.iloc[0], "District": record.District.iloc[0],
@@ -122,6 +127,13 @@ def predict_yield(data: YieldRequest, _: None = Depends(verify_service_key)) -> 
             "total_production_tonnes": round(adjusted * data.land_size / 10, 2),
             "land_size_hectares": data.land_size, "rainfall_mm": data.rainfall,
             "guidance": "Estimate based on historical model data; actual results depend on field conditions."}
+
+
+@app.get("/yield-crops")
+def yield_crops(state: str = Query(min_length=1), district: str = Query(min_length=1),
+                season: str = Query(min_length=1), _: None = Depends(verify_service_key)) -> list[str]:
+    record = _season_rows(yield_data, state, district, season)
+    return sorted(record.Crop.dropna().astype(str).unique().tolist(), key=str.casefold)
 
 
 @app.get("/weather")
