@@ -37,7 +37,7 @@ Visit `http://localhost:8080`. H2 is in-memory for local development; data is cl
 
 ## Plant health API
 
-Disease detection requires an external service that accepts a multipart field named `image` and an `x-api-key` header. Set `PLANT_HEALTH_API_URL` to its endpoint and `PLANT_HEALTH_API_KEY` to its key before starting Spring Boot. The committed `.env.example` uses the dummy value `abcd`; that value intentionally disables requests and displays “API key not configured.” Spring Boot does not load `.env` automatically, so export the variables in your shell or use your deployment platform's environment settings. Requests time out after ten seconds. The external service's response should include a disease/label, confidence (0–100 or 0–1), and optional treatment/advice fields.
+Plant disease checks use PlantHealthEngine's `POST /api/v1/diagnose` endpoint. Set `PLANT_HEALTH_API_KEY` in your shell or hosting provider's secret settings; never commit a real key. The request sends a multipart `image` and `crop` (`tomato`, `potato`, or `maize`) with a Bearer token. The application defaults `PLANT_HEALTH_API_URL` to `https://planthealthengine.com/api/v1/diagnose`. Spring Boot does not load `.env` automatically. Requests time out after ten seconds. API output includes a result status, disease, confidence, and treatment guidance. The free provider plan is limited by its current quota and rate limits.
 
 All plant health output is guidance only, not a medical diagnosis.
 
@@ -57,7 +57,7 @@ Use a managed PostgreSQL service and a schema migration tool before production u
 
 ## Render deployment
 
-`render.yaml` defines the public Spring Boot web service and private ML service. Configure the database connection variables in the Spring service. Add `PLANT_HEALTH_API_URL` and set `PLANT_HEALTH_API_KEY` as a Render secret in the service's Environment settings; do not commit a live key. The external disease API must support the request format described above. The ML service is private and is reached over Render's internal service address.
+`render.yaml` defines free Render web services for Spring Boot and FastAPI, plus a free Render Postgres database. The ML service is public so the Spring service can call it on the free plan; its URL is configured in `ML_SERVICE_URL`. Blueprint setup prompts for `PLANT_HEALTH_API_KEY`; provide it as a secret and never commit it. The free Render Postgres database expires after 30 days, and free web services sleep when idle. These settings are for demos, not durable production hosting.
 
 ## Model and data provenance
 

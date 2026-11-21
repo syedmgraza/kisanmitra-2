@@ -1,14 +1,22 @@
 from pathlib import Path
 from typing import Any
+import hmac
+import os
 
 import joblib
 import numpy as np
 import pandas as pd
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from pydantic import BaseModel, Field
 
 BASE = Path.cwd()
 app = FastAPI(title="KisanMitra ML Service", version="1.0.0")
+ML_SERVICE_API_KEY = os.getenv("ML_SERVICE_API_KEY", "")
+
+
+def verify_service_key(x_ml_service_key: str | None = Header(default=None)) -> None:
+    if ML_SERVICE_API_KEY and not hmac.compare_digest(x_ml_service_key or "", ML_SERVICE_API_KEY):
+        raise HTTPException(status_code=401, detail="Invalid service credentials.")
 
 
 class RecommendationRequest(BaseModel):
@@ -60,7 +68,7 @@ def _season_rows(frame: pd.DataFrame, state: str, district: str, season: str) ->
 
 
 @app.post("/recommend")
-def recommend(data: RecommendationRequest) -> dict[str, Any]:
+def recommend(data: RecommendationRequest, _: None = Depends(verify_service_key)) -> dict[str, Any]:
     subset = _season_rows(history, data.state, data.district, data.season)
     if subset.empty:
         raise HTTPException(404, "No historical crop records match this state, district, and season.")
@@ -95,7 +103,7 @@ def recommend(data: RecommendationRequest) -> dict[str, Any]:
 
 
 @app.post("/predict-yield")
-def predict_yield(data: YieldRequest) -> dict[str, Any]:
+def predict_yield(data: YieldRequest, _: None = Depends(verify_service_key)) -> dict[str, Any]:
     record = _season_rows(yield_data, data.state, data.district, data.season)
     record = record[record.Crop.str.casefold() == data.crop.casefold()]
     if record.empty:
@@ -117,7 +125,8 @@ def predict_yield(data: YieldRequest) -> dict[str, Any]:
 
 
 @app.get("/weather")
-def weather(state: str = Query(min_length=1), season: str = Query(min_length=1)) -> dict[str, Any]:
+def weather(state: str = Query(min_length=1), season: str = Query(min_length=1),
+            _: None = Depends(verify_service_key)) -> dict[str, Any]:
     rows = weather_data[(weather_data.State.map(_norm) == _norm(state)) &
                         (weather_data.Season.str.casefold() == season.casefold())]
     if rows.empty:

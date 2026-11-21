@@ -4,26 +4,60 @@ services:
     runtime: docker
     rootDir: spring-backend
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
+    region: singapore
     envVars:
       - key: ML_SERVICE_URL
-        value: http://kisanmitra-ml:8000
+        value: https://kisanmitra-ml.onrender.com
+      - key: ML_SERVICE_API_KEY
+        generateValue: true
       - key: SPRING_DATASOURCE_URL
-        sync: false
+        value: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
       - key: SPRING_DATASOURCE_USERNAME
-        sync: false
+        fromDatabase:
+          name: kisanmitra-db
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        sync: false
+        fromDatabase:
+          name: kisanmitra-db
+          property: password
       - key: SPRING_DATASOURCE_DRIVER
         value: org.postgresql.Driver
+      - key: DB_HOST
+        fromDatabase:
+          name: kisanmitra-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: kisanmitra-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: kisanmitra-db
+          property: database
       - key: PLANT_HEALTH_API_URL
-        sync: false
+        value: https://planthealthengine.com/api/v1/diagnose
       - key: PLANT_HEALTH_API_KEY
         sync: false
 
-  - type: pserv
+  - type: web
     name: kisanmitra-ml
     runtime: docker
     rootDir: ml-service
     dockerfilePath: ./Dockerfile
-    plan: starter
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: ML_SERVICE_API_KEY
+        fromService:
+          name: kisanmitra
+          type: web
+          envVarKey: ML_SERVICE_API_KEY
+
+databases:
+  - name: kisanmitra-db
+    databaseName: kisanmitra
+    user: kisanmitra
+    plan: free
+    region: singapore
