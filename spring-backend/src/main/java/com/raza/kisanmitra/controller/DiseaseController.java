@@ -1,6 +1,8 @@
 package com.raza.kisanmitra.controller;
 import com.raza.kisanmitra.model.FarmerUser;
 import com.raza.kisanmitra.service.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -12,6 +14,7 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 @Controller public class DiseaseController {
+ private static final Logger log=LoggerFactory.getLogger(DiseaseController.class);
  private static final List<String> SUPPORTED_CROPS=List.of("tomato","potato","maize");
  private final MlClient ml; private final FarmerService farmers;
  @Value("${plant-health.api-url:}") String apiUrl; @Value("${plant-health.api-key:}") String apiKey;
@@ -35,7 +38,7 @@ import java.util.List;
    Object confidence=raw.get("confidence");Double percent=null;
    try{if(confidence instanceof Number n)percent=n.doubleValue();else if(confidence!=null)percent=Double.parseDouble(confidence.toString().replace("%",""));if(percent!=null&&percent<=1)percent*=100;if(percent!=null)percent=Math.max(0,Math.min(100,percent));}catch(NumberFormatException ignored){}
    result.put("confidencePercent",percent);m.addAttribute("result",result);
-  }catch(Exception e){m.addAttribute("error","We could not reach the plant health service. Please try again in a moment.");}return "disease";
+  }catch(Exception e){log.warn("PlantHealthEngine diagnosis request failed.",e);m.addAttribute("error","We could not reach the plant health service. Please try again in a moment.");}return "disease";
  }
  private void addAdvice(List<String> advice,String label,Object value){if(value!=null&&!value.toString().isBlank())advice.add(label+": "+value);}
 }
