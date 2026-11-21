@@ -1,6 +1,7 @@
 package com.raza.kisanmitra.controller;
 import com.raza.kisanmitra.model.FarmerUser;
 import com.raza.kisanmitra.service.FarmerService;
+import com.raza.kisanmitra.service.LocationCatalog;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
