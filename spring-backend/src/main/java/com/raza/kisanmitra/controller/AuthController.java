@@ -6,14 +6,22 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 @Controller public class AuthController {
- private static final List<String> STATES=List.of("Andaman And Nicobar Island","Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Dadra And Nagar Haveli","Daman And Diu","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jammu And Kashmir","Jharkhand","Karnataka","Kerala","Laddak","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Puducherry","Punjab","Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh","Uttarakhand","West Bengal");
- private final FarmerService farmers; public AuthController(FarmerService farmers){this.farmers=farmers;}
+ private final FarmerService farmers; private final LocationCatalog locations;
+ public AuthController(FarmerService farmers,LocationCatalog locations){this.farmers=farmers;this.locations=locations;}
  @GetMapping("/login") String login(){return "login";}
- @GetMapping("/register") String registerForm(Model m){m.addAttribute("farmer",new FarmerUser());m.addAttribute("states",STATES);return "register";}
+ @GetMapping("/register") String registerForm(Model m){m.addAttribute("farmer",new FarmerUser());addLocations(m,null);return "register";}
  @PostMapping("/register") String register(@Valid @ModelAttribute("farmer") FarmerUser farmer,BindingResult br,Model m){
-  if(br.hasErrors()){m.addAttribute("states",STATES);return "register";}
-  try{farmers.register(farmer);return "redirect:/login?registered";}catch(IllegalArgumentException e){m.addAttribute("registrationError",e.getMessage());m.addAttribute("states",STATES);return "register";}
+  String state=locations.canonicalState(farmer.getState());
+  if(state==null)br.rejectValue("state","location.state.invalid","Choose a state from the list.");
+  else{
+   farmer.setState(state);
+   String district=locations.canonicalDistrict(state,farmer.getDistrict());
+   if(district==null)br.rejectValue("district","location.district.invalid","Choose a district from the selected state.");
+   else farmer.setDistrict(district);
+  }
+  if(br.hasErrors()){addLocations(m,farmer.getState());return "register";}
+  try{farmers.register(farmer);return "redirect:/login?registered";}catch(IllegalArgumentException e){m.addAttribute("registrationError",e.getMessage());addLocations(m,farmer.getState());return "register";}
  }
+ private void addLocations(Model model,String state){model.addAttribute("states",locations.states());model.addAttribute("districts",locations.districts(state));}
 }

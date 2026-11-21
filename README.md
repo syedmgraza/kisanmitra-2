@@ -63,4 +63,6 @@ Use a managed PostgreSQL service and a schema migration tool before production u
 
 The two pickle models and supporting CSVs were taken from the repository named in the project brief and are packaged under `ml-service/`. The crop recommendation model follows its historical district-yield workflow; the yield model returns a transformed quintals-per-hectare estimate. Weather Explorer displays the supplied historical state/season averages, not live forecasts. Model and market estimates are planning aids and should be checked against local conditions.
 
+Signup state and district options are generated from the crop recommendation history in `ml-service/final_data.csv`. This prevents unsupported free-text locations, though a supported district may still lack records for a particular season.
+
 Python dependency versions are pinned in `ml-service/requirements.txt` for reproducible installs. The source repository does not record the sklearn training version explicitly; if model compatibility warnings appear, reproduce the exact training environment before upgrading or re-pickling either model.
