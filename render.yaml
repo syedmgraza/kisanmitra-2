@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: kisanmitra
+    runtime: docker
+    rootDir: spring-backend
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    envVars:
+      - key: ML_SERVICE_URL
+        value: http://kisanmitra-ml:8000
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+      - key: SPRING_DATASOURCE_DRIVER
+        value: org.postgresql.Driver
+      - key: PLANT_HEALTH_API_URL
+        sync: false
+      - key: PLANT_HEALTH_API_KEY
+        sync: false
+
+  - type: pserv
+    name: kisanmitra-ml
+    runtime: docker
+    rootDir: ml-service
+    dockerfilePath: ./Dockerfile
+    plan: starter
