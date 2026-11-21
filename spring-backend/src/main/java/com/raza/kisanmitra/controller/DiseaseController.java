@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,7 +24,7 @@ import java.util.List;
  @PostMapping(value="/disease",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) String detect(Authentication a,@RequestParam("image") MultipartFile image,@RequestParam("crop") String crop,Model m){m.addAttribute("farmer",farmers.byEmail(a.getName()));m.addAttribute("crops",SUPPORTED_CROPS);m.addAttribute("selectedCrop",crop);
   if(apiKey.isBlank()||apiUrl.isBlank()){m.addAttribute("apiNotConfigured",true);return "disease";}
   if(!SUPPORTED_CROPS.contains(crop.toLowerCase(java.util.Locale.ROOT))){m.addAttribute("error","Choose tomato, potato, or maize.");return "disease";}
-  if(image.isEmpty()||image.getSize()>8*1024*1024){m.addAttribute("error","Choose a leaf image smaller than 8 MB.");return "disease";}
+  if(image.isEmpty()||image.getSize()>7*1024*1024){m.addAttribute("error","Choose a leaf image smaller than 7 MB.");return "disease";}
   try{Map<?,?> raw=ml.disease(image,crop.toLowerCase(java.util.Locale.ROOT),apiUrl,apiKey);java.util.Map<String,Object> result=new java.util.HashMap<>();
    Object disease=raw.get("disease");
    result.put("disease",disease==null?"No plant detected":disease.toString().replace('_',' '));
@@ -38,7 +39,8 @@ import java.util.List;
    Object confidence=raw.get("confidence");Double percent=null;
    try{if(confidence instanceof Number n)percent=n.doubleValue();else if(confidence!=null)percent=Double.parseDouble(confidence.toString().replace("%",""));if(percent!=null&&percent<=1)percent*=100;if(percent!=null)percent=Math.max(0,Math.min(100,percent));}catch(NumberFormatException ignored){}
    result.put("confidencePercent",percent);m.addAttribute("result",result);
-  }catch(Exception e){log.warn("PlantHealthEngine diagnosis request failed.",e);m.addAttribute("error","We could not reach the plant health service. Please try again in a moment.");}return "disease";
+  }catch(WebClientResponseException e){log.warn("PlantHealthEngine diagnosis request failed with HTTP {}.",e.getStatusCode().value(),e);m.addAttribute("error",e.getStatusCode().value()==413?"This image is too large for the plant health service. Choose an image smaller than 7 MB.":"We could not reach the plant health service. Please try again in a moment.");}
+  catch(Exception e){log.warn("PlantHealthEngine diagnosis request failed.",e);m.addAttribute("error","We could not reach the plant health service. Please try again in a moment.");}return "disease";
  }
  private void addAdvice(List<String> advice,String label,Object value){if(value!=null&&!value.toString().isBlank())advice.add(label+": "+value);}
 }
