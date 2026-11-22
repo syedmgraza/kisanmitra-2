@@ -1,1 +1,87 @@
-<!doctype html><html lang="en" xmlns:th="http://www.thymeleaf.org"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crop recommendation · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme.js" defer></script><script src="https://unpkg.com/lucide@latest"></script></head><body><div th:replace="~{fragments/nav :: nav(${farmer},'recommendation')}"></div><main class="page-wrap"><section class="page-intro page-intro-with-art"><div><p class="eyebrow">A SEASONAL STARTING POINT</p><h1>Find your next crop idea.</h1><p>Explore crops with a track record in <b th:text="${farmer.district + ', ' + farmer.state}">your district</b>. Predictions are estimates, not guarantees.</p></div><img class="page-intro-art" src="/assets/recommendation-feature.png" alt="Crop recommendation illustration"></section><section class="panel form-panel"><form method="post" action="/recommendation" class="inline-form"><input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"><label for="season">Choose a season</label><select id="season" name="season"><option th:each="s : ${seasons}" th:value="${s}" th:text="${s}" th:selected="${selectedSeason == s}"></option></select><button class="button button-primary">Get crop ideas <i data-lucide="arrow-right"></i></button><span class="form-context"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ' · ' + farmer.landSizeHectares + ' ha'}"></span></span></form></section><div class="notice error" th:if="${serviceError}" th:text="${serviceError}"></div><section th:if="${result != null}" class="results-section"><div class="section-heading"><div><p class="eyebrow">YOUR LOCAL SHORTLIST</p><h2 th:text="${#lists.size(result['recommendations']) + ' crop options'}">Crop options</h2></div><span class="result-tag" th:text="${result['season'] + ' · ' + result['district']}">Season · District</span></div><div class="result-grid"><article class="crop-result" th:each="item,stat : ${result['recommendations']}"><div class="crop-thumb"><img th:src="@{'/assets/' + ${item['image_slug']} + '.png'}" onerror="this.onerror=null;this.src='/assets/crop-placeholder.png'" th:alt="${item['crop']}"><span class="rank" th:text="${'0' + (stat.index + 1)}">01</span></div><div class="crop-content"><div class="crop-title"><h3 th:text="${item['crop']}">Crop</h3><span class="status-pill" th:text="${item['performance']}" th:classappend="${' pill-' + #strings.toLowerCase(item['performance'])}">Medium</span></div><p class="crop-metric"><b th:text="${item['predicted_yield_t_ha'] + ' t/ha'}">0 t/ha</b><span>predicted yield</span></p><div class="crop-meta"><span><i data-lucide="briefcase-business"></i><span th:text="${item['effort'] + ' effort'}">Effort</span></span><span th:if="${item['estimated_profit_rs_ha'] != null}"><i data-lucide="indian-rupee"></i><span th:text="${#numbers.formatInteger(item['estimated_profit_rs_ha'],1,'COMMA') + ' est. / ha'}">Estimate</span></span></div><p class="low-confidence" th:if="${item['confidence'] == 'Low'}">Limited confidence for this crop in the model.</p></div></article></div><p class="fine-print">The model uses historical district yields and approximate cost and price references. Confirm suitability, seed access, and market prices locally.</p></section><section class="empty-panel" th:if="${result == null and serviceError == null}"><img src="/assets/rice.png" alt="Rice plant illustration"><h2>Start with your season</h2><p>Choose the season above to see crop options from the historical model.</p></section></main><script>lucide.createIcons()</script></body></html>
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Crop recommendation · KisanMitra</title>
+  <link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme.js" defer></script><script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+<div th:replace="~{fragments/nav :: nav(${farmer},'recommendation')}"></div>
+<main class="page-wrap recommendation-page">
+  <section class="page-intro page-intro-with-art">
+    <div><p class="eyebrow">A SEASONAL STARTING POINT</p><h1>Find your next crop idea.</h1>
+      <p>Compare locally recorded crops and indicative returns for <b th:text="${farmer.district + ', ' + farmer.state}">your district</b>. Model results are estimates, not guarantees.</p>
+    </div><img class="page-intro-art" src="/assets/recommendation-feature.png" alt="Crop recommendation illustration">
+  </section>
+  <section class="panel form-panel recommendation-filter">
+    <form method="post" action="/recommendation" class="inline-form">
+      <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+      <label for="season">Choose a season</label>
+      <select id="season" name="season"><option th:each="s : ${seasons}" th:value="${s}" th:text="${s}" th:selected="${selectedSeason == s}"></option></select>
+      <button class="button button-primary">Compare crops <i data-lucide="arrow-right"></i></button>
+      <span class="form-context"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ' · ' + farmer.landSizeHectares + ' ha'}">Farm details</span></span>
+    </form>
+  </section>
+  <div class="notice error" role="alert" th:if="${serviceError}" th:text="${serviceError}"></div>
+
+  <section th:if="${result != null}" class="results-section profit-explorer">
+    <div class="section-heading"><div><p class="eyebrow">SEASONAL CROP COMPARISON</p><h2>Estimated returns for your area</h2></div><span class="result-tag" th:text="${result['season'] + ' · ' + result['district']}">Season · District</span></div>
+    <p class="profit-intro">Indicative net return per hectare combines the model’s predicted yield with average crop price and cultivation-cost references.</p>
+
+    <section class="profit-top-section" th:if="${!result['recommendations'].isEmpty()}">
+      <h3><i data-lucide="trophy"></i> Top picks by estimated net return</h3>
+      <div class="profit-top-grid">
+        <article class="profit-pick" th:each="item,stat : ${result['recommendations']}" th:if="${stat.index < 3 and item['estimated_profit_rs_ha'] != null}" th:classappend="${stat.index == 0 ? ' profit-pick-featured' : ''}">
+          <span class="profit-rank" th:text="${'0' + (stat.index + 1)}">01</span>
+          <img th:src="@{'/assets/' + ${item['image_slug']} + '.png'}" onerror="this.onerror=null;this.src='/assets/crop-placeholder.png'" th:alt="${item['crop']}">
+          <h4 th:text="${item['crop']}">Crop</h4>
+          <span class="performance-pill" th:classappend="${' performance-' + #strings.toLowerCase(item['performance'])}" th:text="${item['performance'] + ' yield band'}">Yield band</span>
+          <span class="profit-outcome-label" th:text="${item['estimated_profit_rs_ha'] >= 0 ? 'Estimated net return' : 'Estimated net loss'}">Estimated net return</span>
+          <b class="profit-pick-value" th:text="${'₹' + #numbers.formatInteger(item['estimated_profit_rs_ha'],1,'COMMA')}">₹0</b>
+          <small>per hectare · <span th:text="${item['effort'] + ' effort'}">Effort</span></small>
+        </article>
+      </div>
+    </section>
+
+    <section class="profit-chart-panel panel" th:if="${!result['recommendations'].isEmpty()}">
+      <div class="profit-chart-heading"><div><p class="eyebrow">TOP FIVE CROPS</p><h3>Estimated net return or loss</h3></div><span>₹ per hectare</span></div>
+      <div class="profit-chart" id="profit-chart" role="img" aria-label="Estimated net return or loss by crop">
+        <div class="profit-chart-row" th:each="item,stat : ${result['recommendations']}" th:if="${stat.index < 5 and item['estimated_profit_rs_ha'] != null}" th:attr="data-profit=${item['estimated_profit_rs_ha']}">
+          <b class="profit-chart-crop" th:text="${item['crop']}">Crop</b><div class="profit-chart-track"><span class="profit-chart-fill"></span></div>
+          <span class="profit-chart-value" th:text="${'₹' + #numbers.formatInteger(item['estimated_profit_rs_ha'],1,'COMMA')}">₹0</span>
+        </div>
+      </div>
+      <div class="chart-zero-labels"><span>Estimated loss</span><span>Break-even</span><span>Estimated return</span></div>
+    </section>
+
+    <section class="crop-economics-panel panel" th:if="${!result['recommendations'].isEmpty()}">
+      <div class="profit-chart-heading"><div><p class="eyebrow">CROP-BY-CROP DETAIL</p><h3>All modelled crops</h3></div><span th:text="${#lists.size(result['recommendations']) + ' crops'}">Crop count</span></div>
+      <div class="table-scroll"><table class="crop-economics-table">
+        <thead><tr><th scope="col">Crop</th><th scope="col">Yield band</th><th scope="col">Yield (t/ha)</th><th scope="col">Effort</th><th scope="col">Reference price (₹/q)</th><th scope="col">Cost (₹/ha)</th><th scope="col">Net return / loss (₹/ha)</th><th scope="col">Model confidence</th></tr></thead>
+        <tbody><tr th:each="item : ${result['recommendations']}">
+          <th scope="row" th:text="${item['crop']}">Crop</th>
+          <td><span class="table-performance" th:classappend="${' performance-' + #strings.toLowerCase(item['performance'])}" th:text="${item['performance']}">Band</span></td>
+          <td th:text="${#numbers.formatDecimal(item['predicted_yield_t_ha'],1,2)}">0.00</td>
+          <td th:text="${item['effort']}">Varies</td>
+          <td th:text="${item['estimated_price_rs_quintal'] != null ? #numbers.formatInteger(item['estimated_price_rs_quintal'],1,'COMMA') : '—'}">—</td>
+          <td th:text="${item['estimated_cost_rs_ha'] != null ? #numbers.formatInteger(item['estimated_cost_rs_ha'],1,'COMMA') : '—'}">—</td>
+          <td th:classappend="${item['estimated_profit_rs_ha'] != null and item['estimated_profit_rs_ha'] >= 0 ? ' value-positive' : ' value-negative'}" th:text="${item['estimated_profit_rs_ha'] != null ? #numbers.formatInteger(item['estimated_profit_rs_ha'],1,'COMMA') : 'Not available'}">—</td>
+          <td th:text="${item['confidence'] == 'Low' ? 'Limited' : 'Standard'}">Standard</td>
+        </tr></tbody>
+      </table></div>
+    </section>
+
+    <section class="crop-detail-explorer panel" th:if="${!result['recommendations'].isEmpty()}">
+      <div class="profit-chart-heading"><div><p class="eyebrow">EXPLORE AN OPTION</p><h3>Crop economics at a glance</h3></div><i data-lucide="scan-search"></i></div>
+      <label for="crop-detail-select">Choose a crop</label>
+      <select id="crop-detail-select"><option th:each="item,stat : ${result['recommendations']}" th:value="${stat.index}" th:text="${item['crop']}" th:attr="data-yield=${item['predicted_yield_t_ha']},data-price=${item['estimated_price_rs_quintal']},data-cost=${item['estimated_cost_rs_ha']},data-profit=${item['estimated_profit_rs_ha']},data-effort=${item['effort']},data-confidence=${item['confidence']},data-performance=${item['performance']}">Crop</option></select>
+      <div class="crop-detail-stats" id="crop-detail-stats" aria-live="polite"></div>
+    </section>
+
+    <p class="fine-print">Prices and cultivation costs are approximate reference values, not live market quotes. Crop yield performance is relative to historical crop records; “Limited” means the available model evidence is weaker. Confirm local prices, seed access, and suitability before deciding.</p>
+  </section>
+  <section class="empty-panel" th:if="${result == null and serviceError == null}"><img src="/assets/rice.png" alt="Rice plant illustration"><h2>Start with your season</h2><p>Choose a season to compare crop yield and indicative economics for your district.</p></section>
+</main>
+<script src="/js/recommendation.js"></script><script>lucide.createIcons()</script>
+</body></html>

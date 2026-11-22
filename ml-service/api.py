@@ -96,10 +96,14 @@ def recommend(data: RecommendationRequest, _: None = Depends(verify_service_key)
             price = float(crop_reference.loc[crop, "Price"])
             cost = float(crop_reference.loc[crop, "Cost"])
             effort = str(crop_reference.loc[crop, "Effort"])
-            profit = round(prediction * 10 * price - cost)
+            revenue = prediction * 10 * price
+            profit = round(revenue - cost)
         except (KeyError, TypeError, ValueError):
-            price, cost, effort, profit = None, None, "Varies", None
+            price, cost, revenue, effort, profit = None, None, None, "Varies", None
         rows.append({"crop": crop, "image_slug": _asset_slug(str(crop)), "predicted_yield_t_ha": round(prediction, 2), "performance": performance,
+                     "estimated_price_rs_quintal": round(price, 2) if price is not None else None,
+                     "estimated_cost_rs_ha": round(cost, 2) if cost is not None else None,
+                     "estimated_revenue_rs_ha": round(revenue, 2) if revenue is not None else None,
                      "effort": effort, "estimated_profit_rs_ha": profit, "land_size_hectares": data.land_size,
                      "estimated_production_tonnes": round(prediction * data.land_size, 2),
                      "confidence": "Low" if crop in {"Cardamom", "Black Pepper", "Cashewnut", "Niger Seed", "Castor Seed", "Sesamum", "Tobacco", "Safflower", "Dry Chillies"} else "Standard"})
@@ -122,10 +126,33 @@ def predict_yield(data: YieldRequest, _: None = Depends(verify_service_key)) -> 
     rain_factor = 0.85 if data.fertilizer_choice.casefold() == "kam (below normal)" else 1.0
     fert_factor = 0.85 if data.fertilizer_choice.casefold() in {"less than recommended", "kam (less than recommended)"} else 1.0
     adjusted = base_q_ha * rain_factor * fert_factor
+    crop_name = str(record.Crop.iloc[0])
+    reference_rows = crop_reference[crop_reference.index.astype(str).str.strip().str.casefold() == crop_name.strip().casefold()]
+    if reference_rows.empty:
+        price, cost, effort = None, None, "Unavailable"
+        revenue, profit = None, None
+    else:
+        reference = reference_rows.iloc[0]
+        price, cost, effort = float(reference["Price"]), float(reference["Cost"]), str(reference["Effort"])
+        revenue = adjusted * price
+        profit = revenue - cost
+    rain_history = pd.to_numeric(record.Rainfall, errors="coerce").dropna()
+    if rain_history.empty:
+        rainfall_context = {"record_count": 0, "low_mm": None, "high_mm": None, "within_historical_range": None}
+    else:
+        low_mm, high_mm = float(rain_history.quantile(.10)), float(rain_history.quantile(.90))
+        rainfall_context = {"record_count": int(rain_history.size), "low_mm": round(low_mm, 1),
+                            "high_mm": round(high_mm, 1), "within_historical_range": low_mm <= data.rainfall <= high_mm}
     return {"crop": data.crop, "season": data.season, "yield_quintals_per_hectare": round(adjusted, 2),
             "total_production_quintals": round(adjusted * data.land_size, 2),
             "total_production_tonnes": round(adjusted * data.land_size / 10, 2),
             "land_size_hectares": data.land_size, "rainfall_mm": data.rainfall,
+            "estimated_price_rs_quintal": round(price, 2) if price is not None else None,
+            "estimated_cost_rs_ha": round(cost, 2) if cost is not None else None,
+            "estimated_revenue_rs_ha": round(revenue, 2) if revenue is not None else None,
+            "estimated_profit_rs_ha": round(profit, 2) if profit is not None else None,
+            "effort": effort, "rainfall_training_context": rainfall_context,
+            "weather_context": _weather_summary(data.state, data.season),
             "guidance": "Estimate based on historical model data; actual results depend on field conditions."}
 
 
@@ -136,15 +163,22 @@ def yield_crops(state: str = Query(min_length=1), district: str = Query(min_leng
     return sorted(record.Crop.dropna().astype(str).unique().tolist(), key=str.casefold)
 
 
-@app.get("/weather")
-def weather(state: str = Query(min_length=1), season: str = Query(min_length=1),
-            _: None = Depends(verify_service_key)) -> dict[str, Any]:
+def _weather_summary(state: str, season: str) -> dict[str, Any] | None:
     rows = weather_data[(weather_data.State.map(_norm) == _norm(state)) &
-                        (weather_data.Season.str.casefold() == season.casefold())]
+                        (weather_data.Season.str.strip().str.casefold() == season.strip().casefold())]
     if rows.empty:
-        raise HTTPException(404, "No seasonal weather summary is available for this state.")
+        return None
     row = rows.iloc[0]
     return {"state": state, "season": season, "temperature_c": float(row.get("Temp", row.get("Temperature", 0))),
             "rainfall_mm": float(row.get("Rain", row.get("Rainfall", 0))),
             "humidity_percent": float(row.get("Humidity", row.get("Hum", 0))),
             "rainfall_normal_mm": float(rain_normal.get(row.State, 800)), "source": "Historical state and season averages"}
+
+
+@app.get("/weather")
+def weather(state: str = Query(min_length=1), season: str = Query(min_length=1),
+            _: None = Depends(verify_service_key)) -> dict[str, Any]:
+    summary = _weather_summary(state, season)
+    if summary is None:
+        raise HTTPException(404, "No seasonal weather summary is available for this state.")
+    return summary

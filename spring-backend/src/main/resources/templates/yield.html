@@ -2,16 +2,18 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Yield estimate · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme.js" defer></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <title>Yield estimate · KisanMitra</title>
+  <link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme.js" defer></script><script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <div th:replace="~{fragments/nav :: nav(${farmer},'yield')}"></div>
-<main class="page-wrap">
+<main class="page-wrap yield-page">
   <section class="page-intro">
-    <p class="eyebrow">A FARM-SIZE ESTIMATE</p><h1>Think ahead to harvest.</h1><p>Estimate possible yield using crops recorded for your farm location and season.</p>
+    <p class="eyebrow">A FARM-SIZE ESTIMATE</p><h1>Think ahead to harvest.</h1>
+    <p>Estimate possible yield from model records for your farm location and explore how price and area change the indicative return.</p>
   </section>
-  <div class="notice error" th:if="${serviceError}" th:text="${serviceError}"></div>
+  <div class="notice error" role="alert" th:if="${serviceError}" th:text="${serviceError}"></div>
   <div class="yield-layout">
     <section class="panel form-panel yield-form-panel">
       <div class="form-section-heading"><span class="module-icon gold"><i data-lucide="sliders-horizontal"></i></span><div><p class="eyebrow">ESTIMATE INPUTS</p><h2>Your growing season</h2></div></div>
@@ -19,25 +21,63 @@
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <label>Season<select id="yield-season" name="season" required><option th:each="s : ${seasons}" th:value="${s}" th:text="${s}" th:selected="${selectedSeason == s}"></option></select></label>
         <label>Crop<select id="yield-crop" name="crop" th:attr="data-selected-crop=${crop}" required disabled><option value="">Choose a season first</option></select><small id="yield-crop-help" class="field-help">Loading crops for your farm location…</small></label>
-        <label>Expected seasonal rainfall (mm)<input type="number" name="rainfall" min="0" max="10000" step="1" required th:value="${rainfall ?: 800}"><small class="field-help">Use a seasonal estimate for your district.</small></label>
-        <label>Fertilizer use<select name="fertilizer" required><option th:each="f : ${fertilizers}" th:value="${f}" th:text="${f}" th:selected="${fertilizer == f}"></option></select></label>
-        <div class="form-context span-2"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state + ' · ' + farmer.landSizeHectares + ' hectares'}"></span></div>
-        <button class="button button-primary span-2" id="yield-submit">Estimate yield <i data-lucide="arrow-right"></i></button>
+        <label>Expected seasonal rainfall (mm)<input type="number" name="rainfall" min="0" max="10000" step="1" required th:value="${rainfall ?: 800}"><small class="field-help">Enter an estimate for this crop season.</small></label>
+        <label>Fertilizer use<select name="fertilizer" required><option th:each="f : ${fertilizers}" th:value="${f}" th:text="${f}" th:selected="${fertilizer == f}"></option></select><small class="field-help">The model applies only a broad fertilizer adjustment.</small></label>
+        <div class="form-context span-2"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state + ' · ' + farmer.landSizeHectares + ' hectares registered'}">Farm details</span></div>
+        <button class="button button-primary span-2" id="yield-submit">Predict yield <i data-lucide="arrow-right"></i></button>
       </form>
     </section>
     <aside class="yield-side-note">
       <img src="/assets/yield-feature.png" alt="">
-      <p class="eyebrow">LOCATION-MATCHED DATA</p><h3>Choose from trained crops</h3>
-      <p>The crop list updates for your location and selected season, helping avoid estimates for unsupported combinations.</p>
+      <p class="eyebrow">LOCATION-MATCHED DATA</p><h3>Choose a trained crop</h3>
+      <p>The crop list is matched to your district and season. Your registered land size is used for the production estimate.</p>
       <span class="location-chip"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state}">Your location</span></span>
     </aside>
   </div>
-  <section th:if="${result != null}" class="yield-result">
-    <div class="yield-result-head"><span class="module-icon"><i data-lucide="wheat"></i></span><div><p class="eyebrow">MODEL ESTIMATE · <span th:text="${result['season']}">Season</span></p><h2 th:text="${result['crop']}">Crop</h2></div></div>
-    <div class="yield-stats"><div><strong th:text="${result['yield_quintals_per_hectare']}">0</strong><span>quintals per hectare</span></div><div><strong th:text="${result['total_production_tonnes'] + ' t'}">0 t</strong><span>estimated farm production</span></div><div><strong th:text="${result['rainfall_mm'] + ' mm'}">0 mm</strong><span>rainfall input</span></div></div>
-    <p class="fine-print" th:text="${result['guidance']}">Guidance only.</p>
+
+  <section th:if="${result != null}" class="yield-result" id="yield-result">
+    <div class="yield-result-head"><span class="module-icon"><i data-lucide="wheat"></i></span><div><p class="eyebrow">MODEL ESTIMATE · <span th:text="${result['season']}">Season</span></p><h2 th:text="${result['crop']}">Crop</h2></div><span class="result-tag" th:text="${farmer.district + ', ' + farmer.state}">Location</span></div>
+    <div class="yield-stats"><div><strong th:text="${#numbers.formatDecimal(result['yield_quintals_per_hectare'],1,2)}">0.00</strong><span>quintals per hectare</span></div><div><strong th:text="${#numbers.formatDecimal(result['total_production_tonnes'],1,2) + ' t'}">0.00 t</strong><span>production for registered land</span></div><div><strong th:text="${#numbers.formatDecimal(result['rainfall_mm'],1,0) + ' mm'}">0 mm</strong><span>rainfall input</span></div></div>
+    <p class="fine-print" th:text="${result['guidance']}">Estimate guidance.</p>
+
+    <div class="yield-insight-grid">
+      <section class="yield-insight-card">
+        <div class="yield-insight-heading"><span class="insight-icon"><i data-lucide="cloud-sun-rain"></i></span><div><p class="eyebrow">SEASONAL CONTEXT</p><h3>Historical weather</h3></div></div>
+        <div th:if="${weatherContext != null}" class="weather-context-stats">
+          <div><small>Average temperature</small><b th:text="${#numbers.formatDecimal(weatherContext['temperature_c'],1,1) + ' °C'}">—</b></div>
+          <div><small>Historical seasonal rain</small><b th:text="${#numbers.formatDecimal(weatherContext['rainfall_mm'],1,0) + ' mm'}">—</b></div>
+          <div><small>Average humidity</small><b th:text="${#numbers.formatDecimal(weatherContext['humidity_percent'],1,0) + '%'}">—</b></div>
+        </div>
+        <div class="rainfall-range-note" th:if="${rainfallTrainingContext != null and rainfallTrainingContext['record_count'] > 0}">
+          <b th:text="${rainfallTrainingContext['within_historical_range'] ? 'Rainfall is within the model’s common training range' : 'Rainfall is outside the model’s common training range'}">Rainfall context</b>
+          <span th:text="${'Your input: ' + result['rainfall_mm'] + ' mm · model range: ' + rainfallTrainingContext['low_mm'] + '–' + rainfallTrainingContext['high_mm'] + ' mm (' + rainfallTrainingContext['record_count'] + ' records)'}">Training range</span>
+        </div>
+        <p class="field-help" th:if="${weatherContext == null}">Seasonal weather summary is not available for this location.</p>
+        <p class="fine-print">Historical state averages and training rainfall ranges are context only; they do not measure crop suitability or forecast farm weather.</p>
+      </section>
+
+      <section class="yield-insight-card earnings-card" th:if="${result['estimated_cost_rs_ha'] != null}">
+        <div class="yield-insight-heading"><span class="insight-icon gold"><i data-lucide="badge-indian-rupee"></i></span><div><p class="eyebrow">INDICATIVE ECONOMICS</p><h3>Reference return per hectare</h3></div></div>
+        <p class="earnings-yield">Predicted yield <b th:text="${#numbers.formatDecimal(result['yield_quintals_per_hectare'],1,2) + ' q/ha'}">0 q/ha</b></p>
+        <div class="earnings-breakdown"><div><small>Reference revenue</small><b th:text="${'₹' + #numbers.formatInteger(result['estimated_revenue_rs_ha'],1,'COMMA')}">₹0</b></div><div><small>Reference cultivation cost</small><b th:text="${'₹' + #numbers.formatInteger(result['estimated_cost_rs_ha'],1,'COMMA')}">₹0</b></div></div>
+        <div class="earnings-net"><span th:text="${result['estimated_profit_rs_ha'] >= 0 ? 'Estimated net return' : 'Estimated net loss'}">Estimated net return</span><b th:text="${'₹' + #numbers.formatInteger(result['estimated_profit_rs_ha'],1,'COMMA')}">₹0</b></div>
+        <small class="field-help" th:text="${'Price reference: ₹' + result['estimated_price_rs_quintal'] + ' per quintal · ' + result['effort'] + ' effort'}">Reference data</small>
+      </section>
+    </div>
+
+    <section class="what-if-panel panel" th:if="${result['estimated_cost_rs_ha'] != null and result['estimated_price_rs_quintal'] != null}"
+             th:attr="data-yield=${result['yield_quintals_per_hectare']},data-cost=${result['estimated_cost_rs_ha']},data-base-price=${result['estimated_price_rs_quintal']}">
+      <div class="profit-chart-heading"><div><p class="eyebrow">SCENARIO PLANNER</p><h3>What if the market price changes?</h3></div><i data-lucide="sliders-horizontal"></i></div>
+      <p class="profit-intro">Adjust a reference price and area to explore a simple scenario. This does not change the model prediction or use live market prices.</p>
+      <label class="scenario-price-label" for="scenario-price">Market price <span>₹ per quintal</span><output id="scenario-price-output"></output></label>
+      <input id="scenario-price" type="range" min="0" max="10000" step="10" aria-label="Scenario market price in rupees per quintal">
+      <label class="scenario-area-label" for="scenario-area">Land area for this scenario (hectares)<small th:text="${'Up to ' + farmer.landSizeHectares + ' hectares registered'}">Registered land</small></label>
+      <input id="scenario-area" type="number" min="0.01" step="0.01" th:attr="max=${farmer.landSizeHectares}" th:value="${farmer.landSizeHectares}" required>
+      <div class="scenario-results"><div><small>Estimated revenue</small><b id="scenario-revenue">—</b></div><div><small>Estimated cost</small><b id="scenario-cost">—</b></div><div><small id="scenario-profit-label">Estimated net return</small><b id="scenario-profit">—</b></div></div>
+      <p class="fine-print">Uses the predicted yield, the average reference cultivation cost, and your scenario price. Actual yield, cost, and sale price can differ.</p>
+    </section>
   </section>
-  <aside class="guidance-note"><i data-lucide="info"></i><p>Yield changes with seed variety, soil, water, pests, and farm practices. Treat this estimate as a planning aid.</p></aside>
+  <aside class="guidance-note"><i data-lucide="info"></i><p>Yield and economics are planning estimates. Actual results depend on variety, field conditions, input use, and market prices.</p></aside>
 </main>
 <script src="/js/yield.js"></script><script>lucide.createIcons()</script>
 </body>

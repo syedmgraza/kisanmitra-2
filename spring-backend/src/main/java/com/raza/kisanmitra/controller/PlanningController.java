@@ -94,14 +94,17 @@ public class PlanningController {
         model.addAttribute("rainfall", rainfall);
         model.addAttribute("fertilizer", fertilizer);
         try {
-            model.addAttribute("result", ml.predictYield(Map.of(
+            Map<?, ?> result = ml.predictYield(Map.of(
                     "state", farmer.getState(),
                     "district", farmer.getDistrict(),
                     "season", season,
                     "crop", crop,
                     "rainfall", rainfall,
                     "fertilizer_choice", fertilizer,
-                    "land_size", farmer.getLandSizeHectares())));
+                    "land_size", farmer.getLandSizeHectares()));
+            model.addAttribute("result", result);
+            model.addAttribute("weatherContext", result.get("weather_context"));
+            model.addAttribute("rainfallTrainingContext", result.get("rainfall_training_context"));
         } catch (Exception e) {
             log.warn("Yield prediction request to ML service failed.", e);
             model.addAttribute("serviceError", "Yield prediction failed: " + errorDetail(e));

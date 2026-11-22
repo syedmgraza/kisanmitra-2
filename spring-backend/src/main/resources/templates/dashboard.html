@@ -9,7 +9,7 @@
 <div th:replace="~{fragments/nav :: nav(${farmer},'home')}"></div>
 <main class="page-wrap">
   <section class="hero-panel">
-    <div class="hero-copy"><p class="eyebrow eyebrow-light">A CLEARER VIEW OF YOUR NEXT SEASON</p><h1>Good to see you,<br><span th:text="${farmer.username}">Farmer</span>.</h1><p>Your farm tools, local insights, and trusted connections, all in one place.</p><a class="button button-gold" href="/recommendation">Plan a crop season <i data-lucide="arrow-up-right"></i></a></div>
+    <div class="hero-copy"><p class="eyebrow eyebrow-light">A CLEARER VIEW OF YOUR NEXT SEASON</p><h1>Good to see you,<br><span th:text="${farmer.username}">Farmer</span>.</h1><p>Your farm tools, local insights, and trusted connections, all in one place.</p><a class="button button-gold" href="/plan">Plan a crop season <i data-lucide="arrow-up-right"></i></a></div>
     <img class="hero-art" src="/assets/hero.png" alt="Illustration of a flourishing farm">
   </section>
   <section class="section-heading"><div><p class="eyebrow">YOUR FARM AT A GLANCE</p><h2>What would you like to do?</h2></div><span class="profile-chip"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state}">Location</span><b th:text="${#numbers.formatDecimal(farmer.landSizeHectares,1,2) + ' ha'}">0 ha</b></span></section>

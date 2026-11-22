@@ -30,4 +30,52 @@
 
   loadCrops(cropSelect.dataset.selectedCrop || '');
   seasonSelect.addEventListener('change', () => loadCrops(''));
+
+  const scenario = document.querySelector('.what-if-panel');
+  if (!scenario) return;
+  const priceSlider = document.querySelector('#scenario-price');
+  const priceOutput = document.querySelector('#scenario-price-output');
+  const areaInput = document.querySelector('#scenario-area');
+  const revenueOutput = document.querySelector('#scenario-revenue');
+  const costOutput = document.querySelector('#scenario-cost');
+  const profitOutput = document.querySelector('#scenario-profit');
+  const profitLabel = document.querySelector('#scenario-profit-label');
+  const predictedQuintalsPerHa = Number(scenario.dataset.yield);
+  const costPerHa = Number(scenario.dataset.cost);
+  const basePrice = Number(scenario.dataset.basePrice);
+  const currency = value => `₹${new Intl.NumberFormat('en-IN', {maximumFractionDigits: 0}).format(value)}`;
+
+  if (![predictedQuintalsPerHa, costPerHa, basePrice].every(Number.isFinite)) return;
+  priceSlider.min = String(Math.max(1, Math.floor(basePrice * .5)));
+  priceSlider.max = String(Math.max(Number(priceSlider.min) + 1, Math.ceil(basePrice * 1.5)));
+  priceSlider.step = '1';
+  priceSlider.value = String(Math.round(basePrice));
+
+  const updateScenario = () => {
+    const marketPrice = Number(priceSlider.value);
+    const area = Number(areaInput.value);
+    const maxArea = Number(areaInput.max);
+    priceOutput.value = currency(marketPrice);
+    priceOutput.textContent = currency(marketPrice);
+    const invalidArea = !Number.isFinite(area) || area <= 0 || (Number.isFinite(maxArea) && area > maxArea);
+    areaInput.setCustomValidity(invalidArea && Number.isFinite(area) && area > maxArea
+      ? 'Area cannot exceed the registered land size.' : '');
+    areaInput.setAttribute('aria-invalid', String(invalidArea));
+    if (invalidArea) {
+      revenueOutput.textContent = costOutput.textContent = profitOutput.textContent = '—';
+      return;
+    }
+    const revenue = predictedQuintalsPerHa * marketPrice * area;
+    const cost = costPerHa * area;
+    const net = revenue - cost;
+    revenueOutput.textContent = currency(revenue);
+    costOutput.textContent = currency(cost);
+    profitOutput.textContent = currency(net);
+    profitLabel.textContent = net < 0 ? 'Estimated net loss' : 'Estimated net return';
+    profitOutput.classList.toggle('value-negative', net < 0);
+    profitOutput.classList.toggle('value-positive', net >= 0);
+  };
+  priceSlider.addEventListener('input', updateScenario);
+  areaInput.addEventListener('input', updateScenario);
+  updateScenario();
 })();

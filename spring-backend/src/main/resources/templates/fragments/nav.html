@@ -3,6 +3,7 @@
   <div class="nav-links" aria-label="Main navigation">
     <a th:classappend="${active == 'home' ? ' active' : ''}" href="/dashboard">Overview</a>
     <a th:classappend="${active == 'recommendation' ? ' active' : ''}" href="/recommendation">Crop plan</a>
+    <a th:classappend="${active == 'tracker' ? ' active' : ''}" href="/plan">Field tracker</a>
     <a th:classappend="${active == 'yield' ? ' active' : ''}" href="/yield">Yield</a>
     <a th:classappend="${active == 'disease' ? ' active' : ''}" href="/disease">Plant health</a>
     <a th:classappend="${active == 'weather' ? ' active' : ''}" href="/weather">Weather</a>
