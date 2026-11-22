@@ -302,6 +302,105 @@ html[data-theme="dark"] .scenario-results b.value-positive { color: #a9d4b2; }
 html[data-theme="dark"] .earnings-net b.value-negative,
 html[data-theme="dark"] .scenario-results b.value-negative { color: #ff9f8c; }
 
+/* Botanical depth and purposeful motion across the app */
+body {
+  background-image: radial-gradient(ellipse at 8% 2%, #e8f0e97a 0, transparent 34%),
+                    radial-gradient(ellipse at 94% 18%, #edf3e778 0, transparent 30%);
+  background-attachment: fixed;
+}
+.topbar {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 5px 24px #183b2808;
+}
+.nav-links a { position: relative; transition: color .2s ease, background .2s ease, transform .2s ease; }
+.nav-links a:hover { transform: translateY(-1px); }
+.nav-links a.active::after {
+  position: absolute; right: 12px; bottom: 4px; left: 12px; height: 2px;
+  border-radius: 4px; background: var(--green); content: "";
+  animation: nav-mark-in .24s ease both;
+}
+@keyframes nav-mark-in { from { transform: scaleX(.35); opacity: .3; } to { transform: scaleX(1); opacity: 1; } }
+.hero-panel {
+  isolation: isolate;
+  background: linear-gradient(118deg, #17472d 0%, #1f5c3a 56%, #27734a 100%);
+  box-shadow: 0 22px 48px #183b282c;
+}
+.hero-panel::before, .market-hero::before {
+  position: absolute; z-index: 0; inset: 0; pointer-events: none; content: "";
+  background: radial-gradient(ellipse at 77% 28%, #a9d58a2c 0, transparent 31%),
+              radial-gradient(ellipse at 100% 100%, #c4d98822 0, transparent 40%);
+}
+.hero-panel::after {
+  position: absolute; z-index: 0; right: 33%; bottom: -112px; width: 320px; height: 320px;
+  border: 1px solid #ffffff13; border-radius: 48% 52% 60% 40%; content: "";
+  transform: rotate(35deg); pointer-events: none;
+}
+.hero-art { filter: drop-shadow(0 18px 28px #092b1a25); animation: art-drift 7s ease-in-out infinite; }
+@keyframes art-drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.module-card {
+  isolation: isolate; border-radius: 17px;
+  box-shadow: 0 7px 24px #183b2809;
+  transition: transform .25s cubic-bezier(.2,.75,.25,1), box-shadow .25s ease, border-color .25s ease, background .25s ease;
+}
+.module-card::before {
+  position: absolute; z-index: -1; top: -72px; right: -62px; width: 170px; height: 170px;
+  border-radius: 47% 53% 62% 38%; background: radial-gradient(circle at 35% 40%, #d7e8d566, #d7e8d500 70%);
+  content: ""; opacity: .45; transform: rotate(-25deg); transition: transform .45s ease, opacity .3s ease;
+}
+.module-card:hover { transform: translateY(-6px); box-shadow: 0 18px 38px #183b2819; border-color: #a9c5aa; }
+.module-card:hover::before { opacity: .9; transform: rotate(8deg) scale(1.15); }
+.module-illustration { transition: transform .35s cubic-bezier(.2,.75,.25,1), filter .35s ease; }
+.module-card:hover .module-illustration { transform: translateY(-4px) scale(1.06); filter: drop-shadow(0 8px 9px #1f5c3a20); }
+.module-card .text-link { transition: gap .2s ease; }
+.module-card:hover .text-link { gap: 11px; }
+.button, .theme-toggle, .nav-logout, .listing-open { transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease; }
+.button:hover { transform: translateY(-2px); box-shadow: 0 8px 17px #183b2820; }
+.button:active { transform: translateY(0) scale(.985); }
+.theme-toggle:hover, .nav-logout:hover { transform: translateY(-2px); box-shadow: 0 6px 14px #183b2810; }
+.panel, .weather-board, .yield-result, .detail-card, .auth-card, .listing-preview {
+  transition: box-shadow .25s ease, border-color .25s ease, background-color .25s ease;
+}
+.panel:focus-within, .listing-form-card:focus-within { border-color: #9fbea4; box-shadow: 0 12px 32px #183b2810; }
+.section-heading h2, .page-intro h1 { text-wrap: balance; }
+.page-intro > p, .hero-copy > p:not(.eyebrow) { text-wrap: pretty; }
+.profile-chip, .location-chip, .result-tag { transition: transform .2s ease, box-shadow .2s ease; }
+.profile-chip:hover, .location-chip:hover { transform: translateY(-2px); box-shadow: 0 7px 18px #183b2810; }
+.listing-image { overflow: hidden; }
+.listing-card { transition: transform .25s cubic-bezier(.2,.75,.25,1), box-shadow .25s ease, border-color .25s ease; }
+.listing-card:hover .listing-open svg { transform: translateX(3px); }
+.listing-open svg { transition: transform .2s ease; }
+.weather-stats article, .yield-insight-card, .scenario-results > div, .acreage-summary > div {
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.weather-stats article:hover, .yield-insight-card:hover, .scenario-results > div:hover, .acreage-summary > div:hover {
+  transform: translateY(-3px); box-shadow: 0 10px 24px #183b2810; border-color: #c2d4c3;
+}
+.profit-pick, .crop-plan-card, .detail-card { animation: card-settle .38s cubic-bezier(.2,.75,.25,1) both; }
+.profit-pick:nth-child(2) { animation-delay: 60ms; }
+.profit-pick:nth-child(3) { animation-delay: 120ms; }
+@keyframes card-settle { from { opacity: .75; transform: translateY(9px); } to { opacity: 1; transform: translateY(0); } }
+.motion-reveal { opacity: 0; transform: translateY(14px); transition: opacity .48s ease, transform .48s cubic-bezier(.2,.75,.25,1); transition-delay: var(--reveal-delay, 0ms); }
+.motion-reveal.is-visible { opacity: 1; transform: translateY(0); }
+.module-card.motion-reveal.is-visible:hover { transform: translateY(-6px); }
+.listing-card.motion-reveal.is-visible:hover { transform: translateY(-4px); }
+html[data-theme="dark"] body {
+  background-image: radial-gradient(ellipse at 8% 2%, #263d2d55 0, transparent 36%),
+                    radial-gradient(ellipse at 94% 18%, #263d2d3b 0, transparent 32%);
+}
+html[data-theme="dark"] .topbar { background: color-mix(in srgb, var(--surface) 91%, transparent); }
+html[data-theme="dark"] .module-card::before { background: radial-gradient(circle at 35% 40%, #72967b38, #72967b00 70%); }
+html[data-theme="dark"] .profile-chip, html[data-theme="dark"] .location-chip { background: var(--surface-soft); border-color: var(--line); color: var(--muted); }
+html[data-theme="dark"] .weather-stats article:hover,
+html[data-theme="dark"] .yield-insight-card:hover,
+html[data-theme="dark"] .scenario-results > div:hover,
+html[data-theme="dark"] .acreage-summary > div:hover { border-color: #49634e; box-shadow: 0 10px 24px #0003; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .motion-reveal { opacity: 1; transform: none; }
+}
+
 html[data-theme="dark"] {
   color-scheme: dark;
   --bg: #101812;
@@ -315,7 +414,7 @@ html[data-theme="dark"] {
   --focus-ring: #8bb79544;
   --shadow: 0 12px 34px #0005;
 }
-html[data-theme="dark"] body { background: var(--bg); color: var(--ink); }
+html[data-theme="dark"] body { background-color: var(--bg); color: var(--ink); }
 html[data-theme="dark"] .topbar,
 html[data-theme="dark"] .panel,
 html[data-theme="dark"] .profile-chip,
