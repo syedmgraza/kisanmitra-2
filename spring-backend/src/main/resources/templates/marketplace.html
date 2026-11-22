@@ -1,43 +1,89 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale != null ? #locale.language : 'en'}" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Local marketplace · KisanMitra</title>
-  <link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css">
-  <script src="/js/theme.js" defer></script><script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="#{market.title}">Local marketplace · KisanMitra</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <div th:replace="~{fragments/nav :: nav(${farmer},'marketplace')}"></div>
 <main class="page-wrap">
   <section class="market-hero">
-    <div><p class="eyebrow eyebrow-light">GROWN NEAR YOU</p><h1>Good harvests,<br>closer to home.</h1>
-      <p>Find produce offered by farmers around <span th:text="${farmer.district}">your district</span>.</p>
-      <a class="button button-gold" href="/marketplace/new">List your harvest <i data-lucide="plus"></i></a>
-    </div><img src="/assets/marketplace-feature.png" alt="Illustration of farmers sharing produce">
+    <div>
+      <p class="eyebrow eyebrow-light" th:text="#{market.hero.eyebrow}">GROWN NEAR YOU</p>
+      <h1><span th:utext="#{market.hero.heading}">Good harvests,<br>closer to home.</span></h1>
+      <p th:text="#{market.hero.subtext}">Find produce offered by farmers around your district.</p>
+      <a class="button button-gold" href="/marketplace/new">
+        <span th:text="#{market.hero.cta}">List your harvest</span> <i data-lucide="plus"></i>
+      </a>
+    </div>
+    <img src="/assets/marketplace-feature.png" alt="Illustration of farmers sharing produce">
   </section>
+
   <section class="market-toolbar" aria-label="Find local produce">
     <form method="get" action="/marketplace" class="search-form">
-      <i data-lucide="search"></i><input id="market-search" name="crop" th:value="${crop}" placeholder="Search crops in local listings" aria-label="Search by crop name">
-      <button class="button button-primary" type="submit">Search</button>
-      <a class="button button-outline market-clear" href="/marketplace" th:if="${crop != null and !crop.isBlank()}" aria-label="Clear search">Clear</a>
+      <i data-lucide="search"></i>
+      <input id="market-search" name="crop" th:value="${crop}" th:placeholder="#{market.search.placeholder}" aria-label="Search by crop name">
+      <button class="button button-primary" type="submit" th:text="#{market.search.submit}">Search</button>
+      <a class="button button-outline market-clear" href="/marketplace" th:if="${crop != null and !crop.isBlank()}" aria-label="Clear search" th:text="#{market.search.clear}">Clear</a>
     </form>
-    <span class="market-location"><i data-lucide="map-pin"></i><span><b>Showing listings near you</b><small th:text="${farmer.district + ', ' + farmer.state}">Location</small></span></span>
+    <span class="market-location">
+      <i data-lucide="map-pin"></i>
+      <span>
+        <b th:text="#{market.showing_near}">Showing listings near you</b>
+        <small th:text="${farmer.district + ', ' + farmer.state}">Location</small>
+      </span>
+    </span>
   </section>
-  <aside class="notice market-note"><i data-lucide="handshake"></i><span>Contact farmers directly to arrange a purchase. KisanMitra does not process payments.</span></aside>
+
+  <aside class="notice market-note">
+    <i data-lucide="handshake"></i>
+    <span th:text="#{market.disclaimer}">Contact farmers directly to arrange a purchase. KisanMitra does not process payments.</span>
+  </aside>
+
   <section class="market-results-head" th:if="${!listings.isEmpty()}">
-    <div><p class="eyebrow">LOCAL HARVESTS</p><h2 th:text="${#lists.size(listings) + ' listings to explore'}">Local listings</h2></div>
-    <span class="result-tag" th:text="${crop != null and !crop.isBlank() ? 'Filtered by ' + crop : 'Recently shared'}">Recently shared</span>
+    <div>
+      <p class="eyebrow" th:text="#{nav.marketplace}">LOCAL HARVESTS</p>
+      <h2 th:text="${#lists.size(listings) + ' ' + #messages.msg('market.results_count')}">Local listings</h2>
+    </div>
+    <span class="result-tag" th:text="${crop != null and !crop.isBlank() ? #messages.msg('market.filtered_by') + ' ' + crop : #messages.msg('market.recently_shared')}">Recently shared</span>
   </section>
+
   <section th:if="${!listings.isEmpty()}" class="listing-grid">
     <a th:each="listing : ${listings}" class="listing-card" th:href="@{'/marketplace/' + ${listing.id}}">
-      <div class="listing-image"><img th:src="${listing.imagePath != null and !listing.imagePath.isBlank() ? listing.imagePath : '/assets/' + listing.cropImageSlug + '.png'}" onerror="this.onerror=null;this.src='/assets/crop-placeholder.png'" th:alt="${listing.cropName}"><span class="available-tag">Available</span></div>
-      <div class="listing-content"><p class="eyebrow" th:text="${listing.locationDistrict + ' · ' + listing.locationState}">Location</p><h3 th:text="${listing.cropName}">Crop</h3>
-        <div class="listing-price"><b th:text="${'₹' + #numbers.formatDecimal(listing.pricePerKg,1,2) + ' / kg'}">₹0/kg</b><span th:text="${#numbers.formatDecimal(listing.quantityKg,1,0) + ' kg available'}">0 kg</span></div>
-        <p class="seller-line"><i data-lucide="user-round"></i><span th:text="${listing.sellerName}">Farmer</span><span class="listing-open">View harvest <i data-lucide="arrow-up-right"></i></span></p>
+      <div class="listing-image">
+        <img th:src="${listing.imagePath != null and !listing.imagePath.isBlank() ? listing.imagePath : '/assets/' + listing.cropImageSlug + '.png'}" onerror="this.onerror=null;this.src='/assets/crop-placeholder.png'" th:alt="${listing.cropName}">
+        <span class="available-tag" th:text="#{market.available}">Available</span>
+      </div>
+      <div class="listing-content">
+        <p class="eyebrow" th:text="${listing.locationDistrict + ' · ' + listing.locationState}">Location</p>
+        <h3 th:text="${listing.cropName}">Crop</h3>
+        <div class="listing-price">
+          <b th:text="${'₹' + #numbers.formatDecimal(listing.pricePerKg,1,2) + ' ' + #messages.msg('common.per_kg')}">₹0/kg</b>
+          <span th:text="${#numbers.formatDecimal(listing.quantityKg,1,0) + ' ' + #messages.msg('common.kg_available')}">0 kg</span>
+        </div>
+        <p class="seller-line">
+          <i data-lucide="user-round"></i>
+          <span th:text="${listing.sellerName}">Farmer</span>
+          <span class="listing-open"><span th:text="#{market.view_harvest}">View harvest</span> <i data-lucide="arrow-up-right"></i></span>
+        </p>
       </div>
     </a>
   </section>
-  <section class="empty-panel" th:if="${listings.isEmpty()}"><img src="/assets/marketplace-empty.png" alt="No harvest listings yet"><h2>No matching harvests yet</h2><p>Try another crop name, or be the first farmer nearby to share a harvest.</p><a href="/marketplace/new" class="button button-primary">Create a listing <i data-lucide="plus"></i></a></section>
+
+  <section class="empty-panel" th:if="${listings.isEmpty()}">
+    <img src="/assets/marketplace-empty.png" alt="No harvest listings yet">
+    <h2 th:text="#{market.empty.title}">No matching harvests yet</h2>
+    <p th:text="#{market.empty.desc}">Try another crop name, or be the first farmer nearby to share a harvest.</p>
+    <a href="/marketplace/new" class="button button-primary">
+      <span th:text="#{market.empty.cta}">Create a listing</span> <i data-lucide="plus"></i>
+    </a>
+  </section>
 </main>
 <script>lucide.createIcons()</script>
-</body></html>
+</body>
+</html>

@@ -2,9 +2,10 @@
   const chart = document.querySelector('#profit-chart');
   const detailSelect = document.querySelector('#crop-detail-select');
   const detailStats = document.querySelector('#crop-detail-stats');
+  const isHi = document.documentElement.lang === 'hi';
   const money = value => Number.isFinite(Number(value))
-    ? `₹${new Intl.NumberFormat('en-IN', {maximumFractionDigits: 0}).format(Number(value))}`
-    : 'Not available';
+    ? `₹${new Intl.NumberFormat(isHi ? 'hi-IN' : 'en-IN', {maximumFractionDigits: 0}).format(Number(value))}`
+    : (isHi ? 'उपलब्ध नहीं' : 'Not available');
 
   if (chart) {
     const rows = [...chart.querySelectorAll('.profit-chart-row')];
@@ -19,16 +20,27 @@
   }
 
   if (!detailSelect || !detailStats) return;
+  const ds = detailSelect.dataset;
+  const lblYield = ds.labelYield || (isHi ? 'उपज (टन/हे.)' : 'Predicted yield');
+  const lblPrice = ds.labelPrice || (isHi ? 'संदर्भ भाव (₹/क्विंटल)' : 'Reference crop price');
+  const lblCost = ds.labelCost || (isHi ? 'लागत (₹/हेक्टेयर)' : 'Estimated cost');
+  const lblProfit = ds.labelProfit || (isHi ? 'शुद्ध लाभ / हानि' : 'Estimated net / ha');
+  const lblBand = ds.labelBand || (isHi ? 'उपज श्रेणी' : 'Yield band');
+  const lblConf = ds.labelConf || (isHi ? 'मॉडल विश्वसनीयता' : 'Model confidence');
+  const confStd = ds.confStd || (isHi ? 'मानक (Standard)' : 'Standard');
+  const confLtd = ds.confLtd || (isHi ? 'सीमित (Limited)' : 'Limited');
+  const effortSuffix = isHi ? 'परिश्रम' : 'effort';
+
   const updateDetails = () => {
     const option = detailSelect.selectedOptions[0];
     if (!option) return;
     const entries = [
-      ['Predicted yield', `${Number(option.dataset.yield).toFixed(2)} t/ha`],
-      ['Reference crop price', `${money(option.dataset.price)} / quintal`],
-      ['Estimated cost', `${money(option.dataset.cost)} / ha`],
-      ['Estimated net / ha', `${money(option.dataset.profit)} · ${option.dataset.effort || 'Effort varies'} effort`],
-      ['Yield band', option.dataset.performance || 'Unavailable'],
-      ['Model confidence', option.dataset.confidence === 'Low' ? 'Limited' : 'Standard']
+      [lblYield, `${Number(option.dataset.yield).toFixed(2)} ${isHi ? 'टन/हेक्टेयर' : 't/ha'}`],
+      [lblPrice, `${money(option.dataset.price)} ${isHi ? '/ क्विंटल' : '/ quintal'}`],
+      [lblCost, `${money(option.dataset.cost)} ${isHi ? '/ हेक्टेयर' : '/ ha'}`],
+      [lblProfit, `${money(option.dataset.profit)} · ${option.dataset.effort || (isHi ? 'विविध' : 'Varies')} ${effortSuffix}`],
+      [lblBand, option.dataset.performance || (isHi ? 'उपलब्ध नहीं' : 'Unavailable')],
+      [lblConf, option.dataset.confidence === 'Low' ? confLtd : confStd]
     ];
     detailStats.replaceChildren(...entries.map(([label, value]) => {
       const card = document.createElement('article');

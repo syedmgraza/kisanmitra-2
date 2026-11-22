@@ -8,6 +8,11 @@
   const size = document.querySelector('#preview-size');
   if (!input || !zone || !preview || !previewWrap) return;
 
+  const isHi = document.documentElement.lang === 'hi';
+  const msgType = isHi ? 'कृपया एक JPG, PNG या WEBP फोटो चुनें।' : 'Choose a JPG, PNG, or WEBP image.';
+  const msgSize = isHi ? 'यह फोटो 7 MB से बड़ी है। कृपया छोटी फोटो चुनें।' : 'This image is larger than 7 MB. Choose a smaller photo.';
+  const msgErr = isHi ? 'चुनी गई फ़ाइल का पूर्वावलोकन नहीं हो सका। कृपया अन्य JPG, PNG या WEBP फोटो आज़माएं।' : 'The selected file could not be previewed. Try another JPG, PNG, or WEBP image.';
+
   const maxBytes = 7 * 1024 * 1024;
   const accepted = new Set(['image/jpeg', 'image/png', 'image/webp']);
   let objectUrl = null;
@@ -28,13 +33,13 @@
     if (!(accepted.has(file.type) || (!file.type && extensionAllowed))) {
       input.value = '';
       clearPreview();
-      showError('Choose a JPG, PNG, or WEBP image.');
+      showError(msgType);
       return;
     }
     if (file.size > maxBytes) {
       input.value = '';
       clearPreview();
-      showError('This image is larger than 7 MB. Choose a smaller photo.');
+      showError(msgSize);
       return;
     }
     showError('');
@@ -57,7 +62,7 @@
       if (objectUrl !== nextObjectUrl) return;
       clearPreview();
       input.value = '';
-      showError('The selected file could not be previewed. Try another JPG, PNG, or WEBP image.');
+      showError(msgErr);
     };
     preview.src = nextObjectUrl;
   };

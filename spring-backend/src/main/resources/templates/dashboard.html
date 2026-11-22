@@ -1,27 +1,80 @@
 <!doctype html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html th:lang="${#locale != null ? #locale.language : 'en'}" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Farm overview · KisanMitra</title><link rel="stylesheet" href="/css/app.css"><link rel="stylesheet" href="/css/theme.css"><script src="/js/theme.js" defer></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title th:text="#{dashboard.title}">Farm overview · KisanMitra</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/theme.css">
+  <script src="/js/theme.js" defer></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 <div th:replace="~{fragments/nav :: nav(${farmer},'home')}"></div>
 <main class="page-wrap">
   <section class="hero-panel">
-    <div class="hero-copy"><p class="eyebrow eyebrow-light">A CLEARER VIEW OF YOUR NEXT SEASON</p><h1>Good to see you,<br><span th:text="${farmer.username}">Farmer</span>.</h1><p>Your farm tools, local insights, and trusted connections, all in one place.</p><a class="button button-gold" href="/plan">Plan a crop season <i data-lucide="arrow-up-right"></i></a></div>
+    <div class="hero-copy">
+      <p class="eyebrow eyebrow-light" th:text="#{dashboard.hero.eyebrow}">A CLEARER VIEW OF YOUR NEXT SEASON</p>
+      <h1><span th:text="#{dashboard.hero.greeting}">Good to see you,</span><br><span th:text="${farmer.username}">Farmer</span>.</h1>
+      <p th:text="#{dashboard.hero.subtext}">Your farm tools, local insights, and trusted connections, all in one place.</p>
+      <a class="button button-gold" href="/plan"><span th:text="#{dashboard.hero.cta}">Plan a crop season</span> <i data-lucide="arrow-up-right"></i></a>
+    </div>
     <img class="hero-art" src="/assets/hero.png" alt="Illustration of a flourishing farm">
   </section>
-  <section class="section-heading"><div><p class="eyebrow">YOUR FARM AT A GLANCE</p><h2>What would you like to do?</h2></div><span class="profile-chip"><i data-lucide="map-pin"></i><span th:text="${farmer.district + ', ' + farmer.state}">Location</span><b th:text="${#numbers.formatDecimal(farmer.landSizeHectares,1,2) + ' ha'}">0 ha</b></span></section>
+  <section class="section-heading">
+    <div>
+      <p class="eyebrow" th:text="#{dashboard.heading.eyebrow}">YOUR FARM AT A GLANCE</p>
+      <h2 th:text="#{dashboard.heading.title}">What would you like to do?</h2>
+    </div>
+    <span class="profile-chip">
+      <i data-lucide="map-pin"></i>
+      <span th:text="${farmer.district + ', ' + farmer.state}">Location</span>
+      <b th:text="${#numbers.formatDecimal(farmer.landSizeHectares,1,2) + ' ' + #messages.msg('common.ha')}">0 ha</b>
+    </span>
+  </section>
   <div class="module-grid">
-    <a class="module-card" href="/recommendation"><img class="module-illustration" src="/assets/recommendation-feature.png" alt=""><p class="eyebrow">PLAN</p><h3>Crop recommendation</h3><p>Explore crop options grounded in your district’s history and season.</p><span class="text-link">See crop ideas <i data-lucide="arrow-right"></i></span></a>
-    <a class="module-card" href="/yield"><img class="module-illustration" src="/assets/yield-feature.png" alt=""><p class="eyebrow">ESTIMATE</p><h3>Yield prediction</h3><p>Estimate a possible harvest using crops trained for your location.</p><span class="text-link">Estimate yield <i data-lucide="arrow-right"></i></span></a>
-    <a class="module-card" href="/disease"><img class="module-illustration" src="/assets/planthealth-feature.png" alt=""><p class="eyebrow">IDENTIFY</p><h3>Plant health</h3><p>Review an image-based plant health result and treatment guidance.</p><span class="text-link">Check a plant <i data-lucide="arrow-right"></i></span></a>
-    <a class="module-card" href="/weather"><img class="module-illustration" src="/assets/weather-feature.png" alt=""><p class="eyebrow">UNDERSTAND</p><h3>Weather explorer</h3><p>Review historical seasonal rainfall, temperature, and humidity.</p><span class="text-link">Explore weather <i data-lucide="arrow-right"></i></span></a>
-    <a class="module-card module-card-wide" href="/marketplace"><img class="module-illustration" src="/assets/marketplace-feature.png" alt=""><p class="eyebrow">CONNECT</p><h3>Farmer marketplace</h3><p>Discover harvests from nearby farmers or list your own produce.</p><span class="text-link">Browse local listings <i data-lucide="arrow-right"></i></span></a>
+    <a class="module-card" href="/recommendation">
+      <img class="module-illustration" src="/assets/recommendation-feature.png" alt="">
+      <p class="eyebrow" th:text="#{dashboard.module.plan.eyebrow}">PLAN</p>
+      <h3 th:text="#{dashboard.module.plan.title}">Crop recommendation</h3>
+      <p th:text="#{dashboard.module.plan.desc}">Explore crop options grounded in your district’s history and season.</p>
+      <span class="text-link"><span th:text="#{dashboard.module.plan.link}">See crop ideas</span> <i data-lucide="arrow-right"></i></span>
+    </a>
+    <a class="module-card" href="/yield">
+      <img class="module-illustration" src="/assets/yield-feature.png" alt="">
+      <p class="eyebrow" th:text="#{dashboard.module.estimate.eyebrow}">ESTIMATE</p>
+      <h3 th:text="#{dashboard.module.estimate.title}">Yield prediction</h3>
+      <p th:text="#{dashboard.module.estimate.desc}">Estimate a possible harvest using crops trained for your location.</p>
+      <span class="text-link"><span th:text="#{dashboard.module.estimate.link}">Estimate yield</span> <i data-lucide="arrow-right"></i></span>
+    </a>
+    <a class="module-card" href="/disease">
+      <img class="module-illustration" src="/assets/planthealth-feature.png" alt="">
+      <p class="eyebrow" th:text="#{dashboard.module.identify.eyebrow}">IDENTIFY</p>
+      <h3 th:text="#{dashboard.module.identify.title}">Plant health</h3>
+      <p th:text="#{dashboard.module.identify.desc}">Review an image-based plant health result and treatment guidance.</p>
+      <span class="text-link"><span th:text="#{dashboard.module.identify.link}">Check a plant</span> <i data-lucide="arrow-right"></i></span>
+    </a>
+    <a class="module-card" href="/weather">
+      <img class="module-illustration" src="/assets/weather-feature.png" alt="">
+      <p class="eyebrow" th:text="#{dashboard.module.understand.eyebrow}">UNDERSTAND</p>
+      <h3 th:text="#{dashboard.module.understand.title}">Weather explorer</h3>
+      <p th:text="#{dashboard.module.understand.desc}">Review historical seasonal rainfall, temperature, and humidity.</p>
+      <span class="text-link"><span th:text="#{dashboard.module.understand.link}">Explore weather</span> <i data-lucide="arrow-right"></i></span>
+    </a>
+    <a class="module-card module-card-wide" href="/marketplace">
+      <img class="module-illustration" src="/assets/marketplace-feature.png" alt="">
+      <p class="eyebrow" th:text="#{dashboard.module.connect.eyebrow}">CONNECT</p>
+      <h3 th:text="#{dashboard.module.connect.title}">Farmer marketplace</h3>
+      <p th:text="#{dashboard.module.connect.desc}">Discover harvests from nearby farmers or list your own produce.</p>
+      <span class="text-link"><span th:text="#{dashboard.module.connect.link}">Browse local listings</span> <i data-lucide="arrow-right"></i></span>
+    </a>
   </div>
-  <aside class="guidance-note"><i data-lucide="info"></i><p>KisanMitra provides estimates and general guidance. Local conditions and professional advice matter for every farm decision.</p></aside>
+  <aside class="guidance-note">
+    <i data-lucide="info"></i>
+    <p th:text="#{dashboard.guidance}">KisanMitra provides estimates and general guidance. Local conditions and professional advice matter for every farm decision.</p>
+  </aside>
 </main>
-<footer class="site-footer">Made for the people who grow our food.</footer><script>lucide.createIcons()</script>
+<footer class="site-footer" th:text="#{app.footer}">Made for the people who grow our food.</footer>
+<script>lucide.createIcons()</script>
 </body>
 </html>

@@ -10,9 +10,13 @@
     try { localStorage.setItem(key, theme); } catch { /* Theme still works for this page. */ }
     const button = document.querySelector('#theme-toggle');
     if (!button) return;
+    const isHi = root.lang === 'hi';
     const next = theme === 'dark' ? 'light' : 'dark';
-    button.setAttribute('aria-label', `Switch to ${next} mode`);
-    button.setAttribute('title', `Switch to ${next} mode`);
+    const label = isHi
+      ? (theme === 'dark' ? 'लाइट मोड चालू करें' : 'डार्क मोड चालू करें')
+      : `Switch to ${next} mode`;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
     button.setAttribute('aria-pressed', String(theme === 'dark'));
     button.innerHTML = `<i data-lucide="${theme === 'dark' ? 'sun' : 'moon'}"></i>`;
     window.lucide?.createIcons();
